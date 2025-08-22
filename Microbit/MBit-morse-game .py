@@ -4,13 +4,12 @@ import music
 import utime
 import random
 
-# --- ค่าความเร็ว WPM ---
+# --- การตั้งค่าความเร็ว WPM ---
 WPM = 10
 SHAKE_THRESHOLD = 3500
 DIT_PIN = pin1
 DAH_PIN = pin2
 SPEAKER_PIN = pin0
-
 
 # กำหนดเวลารอส่งคำตอบเป็นค่าคงที่ (หน่วยเป็นมิลลิวินาที)
 ANSWER_SUBMIT_GAP = 700 
@@ -19,13 +18,12 @@ def calculate_timings(current_wpm):
     dot = int(1200 / current_wpm)
     dash = 3 * dot
     letter_gap = 3 * dot
-    # ลบ answer_submit_gap ออกจากฟังก์ชันนี้
     return dot, dash, letter_gap
 
 # รับค่าเวลาโดยไม่มี answer_submit_gap
 DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP = calculate_timings(WPM)
 
-# ----> รหัสมอร์สที่โปรแกรมสามารถเล่นได้ (ฉบับตรวจสอบและแก้ไขสมบูรณ์) <----
+# ----> รหัสมอร์ส
 MORSE_CODE_DICT = {
     '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
     '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
@@ -60,16 +58,17 @@ correct_answer_char = ""
 
 # ส่วนแสดงข้อความต้อนรับและนับถอยหลังตอนเริ่มต้น
 display.scroll("Morse Ready", delay=70, wait=True)
-sleep(500)
+sleep(300)
+display.scroll("WPM:" + str(WPM), delay=80)
+sleep(300)
 display.show("3")
-sleep(500)
+sleep(300)
 display.show("2")
-sleep(500)
+sleep(300)
 display.show("1")
-sleep(500)
+sleep(300)
 display.show(Image.TARGET)
 sleep(500)
-
 
 while True:
     current_time = utime.ticks_ms()
@@ -129,15 +128,30 @@ while True:
             if paddle_mode_enabled: sleep(50)
         else:
             time_since_last_event = utime.ticks_diff(current_time, last_event_time)
-            # 
             if current_sequence != "" and time_since_last_event > ANSWER_SUBMIT_GAP:
                 player_answer_char = MORSE_CODE_DICT.get(current_sequence, "!")
+                
                 if player_answer_char == correct_answer_char:
                     display.show(Image.YES)
+                    sleep(1000)
+                    display.scroll(correct_answer_char)
                 else:
+                    # ----> ส่วนที่แก้ไข: ลำดับการแสดงผลเมื่อตอบผิด <----
+                    # 1. แสดงสัญลักษณ์ X
                     display.show(Image.NO)
-                sleep(1000)
-                display.scroll(correct_answer_char)
+                    sleep(1000)
+                    
+                    # 2. เฉลยด้วยตัวอักษร
+                    display.show(correct_answer_char, delay=1000)
+                    
+                    # 3. เฉลยด้วยเสียงซ้ำ
+                    morse_to_replay = REVERSE_MORSE_DICT[correct_answer_char]
+                    play_morse_sequence(morse_to_replay)
+                    sleep(1500)
+                    # 4. แสดงสัญลักษณ์ "ข้อต่อไป"
+                    display.show(Image.ARROW_E) # E = East 
+                    sleep(1500)
+
                 current_sequence = ""
                 game_state = "GENERATE_QUESTION"
 
@@ -147,7 +161,6 @@ while True:
             if tilt_x > 300: WPM += 1
             else: WPM -= 1
             if WPM < 5: WPM = 5
-            # เมื่อปรับ WPM จะไม่มีผลต่อ ANSWER_SUBMIT_GAP แล้ว
             DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP = calculate_timings(WPM)
             display.scroll("WPM:" + str(WPM), delay=80)
             sleep(300)
