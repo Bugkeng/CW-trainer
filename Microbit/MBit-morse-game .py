@@ -21,7 +21,8 @@ def calculate_timings(current_wpm):
     return dot, dash, letter_gap, answer_submit_gap
 
 DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP, ANSWER_SUBMIT_GAP = calculate_timings(WPM)
-# ----> รหัสมอร์สที่โปรแกรมสามารถเล่นได้
+
+# ----> รหัสมอร์สที่โปรแกรมสามารถเล่นได้ (ฉบับตรวจสอบและแก้ไขสมบูรณ์) <----
 MORSE_CODE_DICT = {
     '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
     '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
@@ -30,7 +31,8 @@ MORSE_CODE_DICT = {
     '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
     '--..': 'Z', '-----': '0', '.----': '1', '..---': '2',
     '...--': '3', '....-': '4', '.....': '5', '-....': '6',
-    '--...': '7', '---..': '8', '----.': '9', '..--..': '?', '-..-.': '/'
+    '--...': '7', '---..': '8', '----.': '9', '..--..': '?',
+    '-..-.': '/'
 }
 
 REVERSE_MORSE_DICT = {value: key for key, value in MORSE_CODE_DICT.items()}
@@ -53,8 +55,8 @@ correct_answer_char = ""
 
 # --- โปรแกรมหลัก ---
 
-# <--แสดงข้อความต้อนรับและนับถอยหลังตอนเริ่มต้น
-display.scroll("READY", delay=40)
+# ส่วนแสดงข้อความต้อนรับและนับถอยหลังตอนเริ่มต้น
+display.scroll("Morse Ready", delay=60)
 sleep(500)
 display.show("3")
 sleep(800)
@@ -62,7 +64,6 @@ display.show("2")
 sleep(800)
 display.show("1")
 sleep(800)
-
 
 display.show(Image.TARGET)
 
@@ -103,7 +104,6 @@ while True:
             paddle_mode_enabled = not paddle_mode_enabled
             display.show(Image.SQUARE_SMALL if paddle_mode_enabled else Image.TARGET)
             sleep(500)
-
        
         dit_event, dah_event = False, False
         if paddle_mode_enabled:
