@@ -4,23 +4,26 @@ import music
 import utime
 import random
 
-# --- การตั้งค่าความเร็ว WPM ---
-WPM = 8
-# ----> ค่าความแรงในการเขย่าเพื่อสลับโหมด ปุ่ม/เชื่อมต่อคันเคาะ <----
+# --- ค่าความเร็ว WPM ---
+WPM = 10
 SHAKE_THRESHOLD = 3500
-
 DIT_PIN = pin1
 DAH_PIN = pin2
 SPEAKER_PIN = pin0
-# ----> คำนวณระยะเวลาของทุกอย่าง โดยอ้างอิงจากค่า WPM
+
+
+# กำหนดเวลารอส่งคำตอบเป็นค่าคงที่ (หน่วยเป็นมิลลิวินาที)
+ANSWER_SUBMIT_GAP = 700 
+
 def calculate_timings(current_wpm):
     dot = int(1200 / current_wpm)
     dash = 3 * dot
     letter_gap = 3 * dot
-    answer_submit_gap = 5 * dot 
-    return dot, dash, letter_gap, answer_submit_gap
+    # ลบ answer_submit_gap ออกจากฟังก์ชันนี้
+    return dot, dash, letter_gap
 
-DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP, ANSWER_SUBMIT_GAP = calculate_timings(WPM)
+# รับค่าเวลาโดยไม่มี answer_submit_gap
+DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP = calculate_timings(WPM)
 
 # ----> รหัสมอร์สที่โปรแกรมสามารถเล่นได้ (ฉบับตรวจสอบและแก้ไขสมบูรณ์) <----
 MORSE_CODE_DICT = {
@@ -56,16 +59,17 @@ correct_answer_char = ""
 # --- โปรแกรมหลัก ---
 
 # ส่วนแสดงข้อความต้อนรับและนับถอยหลังตอนเริ่มต้น
-display.scroll("Morse Ready", delay=60)
+display.scroll("Morse Ready", delay=70, wait=True)
 sleep(500)
 display.show("3")
-sleep(800)
+sleep(500)
 display.show("2")
-sleep(800)
+sleep(500)
 display.show("1")
-sleep(800)
-
+sleep(500)
 display.show(Image.TARGET)
+sleep(500)
+
 
 while True:
     current_time = utime.ticks_ms()
@@ -95,6 +99,7 @@ while True:
         morse_to_play = REVERSE_MORSE_DICT[correct_answer_char]
         play_morse_sequence(morse_to_play)
         
+        last_event_time = utime.ticks_ms()
         game_state = "WAIT_FOR_ANSWER"
 
     elif game_state == "WAIT_FOR_ANSWER":
@@ -104,7 +109,7 @@ while True:
             paddle_mode_enabled = not paddle_mode_enabled
             display.show(Image.SQUARE_SMALL if paddle_mode_enabled else Image.TARGET)
             sleep(500)
-       
+        
         dit_event, dah_event = False, False
         if paddle_mode_enabled:
             if DIT_PIN.is_touched(): dit_event = True
@@ -124,6 +129,7 @@ while True:
             if paddle_mode_enabled: sleep(50)
         else:
             time_since_last_event = utime.ticks_diff(current_time, last_event_time)
+            # 
             if current_sequence != "" and time_since_last_event > ANSWER_SUBMIT_GAP:
                 player_answer_char = MORSE_CODE_DICT.get(current_sequence, "!")
                 if player_answer_char == correct_answer_char:
@@ -141,6 +147,7 @@ while True:
             if tilt_x > 300: WPM += 1
             else: WPM -= 1
             if WPM < 5: WPM = 5
-            DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP, ANSWER_SUBMIT_GAP = calculate_timings(WPM)
+            # เมื่อปรับ WPM จะไม่มีผลต่อ ANSWER_SUBMIT_GAP แล้ว
+            DOT_LENGTH, DASH_LENGTH, INTER_LETTER_GAP = calculate_timings(WPM)
             display.scroll("WPM:" + str(WPM), delay=80)
             sleep(300)
