@@ -52,6 +52,18 @@ game_state = "GENERATE_QUESTION"
 correct_answer_char = ""
 
 # --- โปรแกรมหลัก ---
+
+# <--แสดงข้อความต้อนรับและนับถอยหลังตอนเริ่มต้น
+display.scroll("READY", delay=40)
+sleep(500)
+display.show("3")
+sleep(800)
+display.show("2")
+sleep(800)
+display.show("1")
+sleep(800)
+
+
 display.show(Image.TARGET)
 
 while True:
@@ -60,16 +72,13 @@ while True:
     # ---->เข้า/ออกโหมดตั้งค่า WPM <----
     if button_a.is_pressed() and button_b.is_pressed():
         if game_state == "SETTINGS":
-            # ออกจากโหมดตั้งค่า
             game_state = "GENERATE_QUESTION"
-            display.show(Image.HEART) # แสดงรูปหัวใจ
+            display.show(Image.HEART)
             sleep(500)
-            # กลับไปแสดงไอคอนโหมด Input ปัจจุบัน
             display.show(Image.SQUARE_SMALL if paddle_mode_enabled else Image.TARGET)
         else:
-            # เข้าสู่โหมดตั้งค่า
             game_state = "SETTINGS"
-            display.show(Image.HEART) # แสดงรูปหัวใจ
+            display.show(Image.HEART)
             sleep(500)
         sleep(500)
         continue
@@ -78,10 +87,13 @@ while True:
     if game_state == "GENERATE_QUESTION":
         display.show("?")
         sleep(1000)
+        
+        current_sequence = ""
+
         correct_answer_char = random.choice(CHARACTER_SET)
         morse_to_play = REVERSE_MORSE_DICT[correct_answer_char]
         play_morse_sequence(morse_to_play)
-        last_event_time = utime.ticks_ms()
+        
         game_state = "WAIT_FOR_ANSWER"
 
     elif game_state == "WAIT_FOR_ANSWER":
